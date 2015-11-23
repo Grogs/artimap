@@ -1,7 +1,12 @@
+package dao
+
 import java.net.{HttpURLConnection, URL}
 
 import org.apache.commons.io.IOUtils
 
+/**
+  * Created by grogs on 23/11/2015.
+  */
 object Http {
 
   object logger {
