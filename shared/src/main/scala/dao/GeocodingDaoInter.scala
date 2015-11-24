@@ -1,3 +1,7 @@
+package dao
+
+import model.LatLong
+
 import scala.concurrent.Future
 
 trait GeocodingDaoInter {

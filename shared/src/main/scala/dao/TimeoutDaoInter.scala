@@ -1,3 +1,7 @@
+package dao
+
+import model.Entry
+
 /**
   * Created by grogs on 23/11/2015.
   */
