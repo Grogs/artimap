@@ -16,6 +16,6 @@ class Client(relativePath: String) extends autowire.Client[String, upickle.Reade
 }
 
 object Client {
-  val timeoutDaoClient = new Client("entries")[TimeoutDaoInter].call()
-  val geocodingDaoClient = new Client("geocode")[GeocodingDaoInter].call()
+  val timeoutDaoClient = new Client("entries")[TimeoutDaoInter]
+  val geocodingDaoClient = new Client("geocode")[GeocodingDaoInter]
 }
