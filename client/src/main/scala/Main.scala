@@ -7,8 +7,8 @@ import scala.scalajs.js.annotation.JSExport
 object Main {
   @JSExport
   def main(): Unit = {
-    val geoDao: GeocodingDaoInter = Client.geocodingDaoClient.
-    val timeoutDao: TimeoutDaoInter = Client.timeoutDaoClient
+    val geoDao: Client[GeocodingDaoInter] = Client.geocodingDaoClient
+    val timeoutDao: Client[TimeoutDaoInter] = Client.timeoutDaoClient
     new Map("dummy", document.getElementById("map-container"))(geoDao, timeoutDao)
   }
 }
