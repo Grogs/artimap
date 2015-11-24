@@ -9,8 +9,8 @@ import org.scalajs.dom.document
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
 @JSExport
-class Map(val url: String, val target: Element)(val geocodingDao: GeocodingDaoInter, val timeoutDao: TimeoutDaoInter) {
-  lazy val entries =timeoutDao.getEntries(url)(timeoutDao.getPage(url))
+class Map(val url: String, val target: Element)(val geocodingDao: Client[GeocodingDaoInter], val timeoutDao: Client[TimeoutDaoInter]) {
+  val entries = timeoutDao.getEntries(url)(timeoutDao.getPage(url))
 
   val opts = google.maps.MapOptions(
     center = new LatLng(51.201203, -1.724370),
@@ -22,7 +22,9 @@ class Map(val url: String, val target: Element)(val geocodingDao: GeocodingDaoIn
   val gmap = new google.maps.Map(target, opts)
 
   val markers = for {
-    entry <- entries
+    points <- entries
+  } yield for {
+    entry <- points
   } yield for { //Using flatmap, will start one Future and wait for it to finish before starting the next
     pos <- entry.getLatLong(geocodingDao)
     latLng = new LatLng(pos.latitude, pos.longitude)
