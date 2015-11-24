@@ -14,7 +14,7 @@ class TimeoutDao extends TimeoutDaoInter {
     FileUtils.readFileToString(new File("the-100-best-bars-and-pubs-in-london-full-list.html"))
   }
 
-  override def getEntries(articleId: String)(page: String) = {
+  override def getEntries(articleId: String, page: String) = {
     val entryHtmls = Jsoup.parse(page).select(".tab__panel > div > div > article").asScala.toList
     for {
       html <- entryHtmls

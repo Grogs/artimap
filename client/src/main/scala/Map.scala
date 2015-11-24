@@ -4,13 +4,16 @@ import org.scalajs.dom.raw.{Element, HTMLElement}
 
 import scala.scalajs.js.annotation.JSExport
 
+import autowire._
+
 import org.scalajs.dom.document
 
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
 @JSExport
 class Map(val url: String, val target: Element)(val geocodingDao: Client[GeocodingDaoInter], val timeoutDao: Client[TimeoutDaoInter]) {
-  val entries = timeoutDao.getEntries(url)(timeoutDao.getPage(url))
+  val page = timeoutDao().getPage(url).call()
+  val entries = page flatMap (timeoutDao().getEntries(url, _).call())
 
   val opts = google.maps.MapOptions(
     center = new LatLng(51.201203, -1.724370),
@@ -26,7 +29,7 @@ class Map(val url: String, val target: Element)(val geocodingDao: Client[Geocodi
   } yield for {
     entry <- points
   } yield for { //Using flatmap, will start one Future and wait for it to finish before starting the next
-    pos <- entry.getLatLong(geocodingDao)
+    pos <- entry.getLatLong(geocodingDao())
     latLng = new LatLng(pos.latitude, pos.longitude)
   } yield new google.maps.Marker(google.maps.MarkerOptions(
     position = latLng,

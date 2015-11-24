@@ -9,5 +9,5 @@ trait TimeoutDaoInter {
 
   def getPage(articleId: String): String
 
-  def getEntries(articleId: String)(page: String = getPage(articleId)): List[Entry]
+  def getEntries(articleId: String, page: String): List[Entry]
 }

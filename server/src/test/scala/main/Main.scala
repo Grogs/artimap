@@ -10,7 +10,7 @@ import scala.concurrent.duration._
   */
 object Main extends App {
 
-  val entries = TimeoutDao.getEntries("")()
+  val entries = Config.timeoutDao.getEntries("", Config.timeoutDao.getPage(""))
   println(entries)
 
   val first = entries.head
