@@ -21,37 +21,26 @@ object Server extends App with SimpleRoutingApp {
     upickle.read[Map[String, String]](e)
   )
 
+  val timeoutRouter = Router.route[TimeoutDaoInter](Config.timeoutDao)
+  val geocodingRouter = Router.route[GeocodingDaoInter](Config.geocodingDao)
 
-  startServer("0.0.0.0", port = port) {
-    (get & path("/")) {
-      complete {
-        import scalatags.Text.all._
-        val doc = html(
-//          head(),
-          body(
-            div(id:="map", style:="height: 100%;")
+  startServer(interface = "localhost", port = port) {
+    path("index") {
+      get {
+        complete {
+          val doc = Index().render
+          HttpEntity(
+            MediaTypes.`text/html`,
+            doc
           )
-        ).render
-        HttpEntity(
-          MediaTypes.`text/html`,
-          doc
-        )
-
+        }
       }
     } ~
-    path("api") {
-      (get & path("entries" / Segments)) { s =>
-        extract(_.request.entity.asString) { e =>
-          complete {
-            Router.route[TimeoutDaoInter](Config.timeoutDao)(req(s,e))
-          }
-        }
-      } ~
-      (get & path("geocode" / Segments)) { s =>
-        extract(_.request.entity.asString) { e =>
-          complete {
-            Router.route[GeocodingDaoInter](Config.geocodingDao)(req(s,e))
-          }
+    pathPrefix("assets") { getFromResourceDirectory("") } ~
+    (post & path("api" / Segments)) {s =>
+      extract(_.request.entity.asString) { e =>
+        complete {
+          (timeoutRouter orElse geocodingRouter)(req(s,e))
         }
       }
     }

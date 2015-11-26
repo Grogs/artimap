@@ -24,9 +24,10 @@
 
 
 
-import scala.scalajs.js
-import js.annotation._
 import org.scalajs.dom._
+
+import scala.scalajs.js
+import scala.scalajs.js.annotation._
 //import org.scalajs.dom.raw.{HTMLInputElement,HTMLDivElement}
 import scala.scalajs.js.Date
 
@@ -83,7 +84,7 @@ class MVCArray protected() extends MVCObject {
   def setAt(i: Double, elem: js.Any): Unit = js.native
 }
 
-@JSName("google.maps.Map")
+@JSName("google.maps.gregmap.client.Map")
 class Map protected() extends MVCObject {
   def this(mapDiv: Element, opts: MapOptions = ???) = this()
 

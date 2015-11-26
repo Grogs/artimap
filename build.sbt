@@ -33,6 +33,12 @@ lazy val client:sbt.Project = (project in file("client")).settings(
     "be.doeraene" %%% "scalajs-jquery" % "0.8.1",
     "fr.iscpif" %%% "scaladget" % "0.7.0"
   )
+).settings(
+  Seq(fastOptJS, fullOptJS) map {
+    packageJSKey =>
+      crossTarget in (Compile, packageJSKey) :=
+        baseDirectory.value / "../server/resources/"
+  }:_*
 ).enablePlugins(ScalaJSPlugin).dependsOn(sharedJs)
 
 
