@@ -3,6 +3,8 @@ client/target/
 project/project/
 project/target/
 server/target/
+activator
+activator-*.jar
 shared/.js/
 shared/.jvm/
 target/
