@@ -25,10 +25,14 @@ object Server extends App with SimpleRoutingApp {
   val geocodingRouter = Router.route[GeocodingDaoInter](Config.geocodingDao)
 
   startServer(interface = "localhost", port = port) {
+    (get & path("flush")) {complete {
+      Config.flushCaches()
+      "Done!"
+    } } ~
     path("index") {
       get {
         complete {
-          val doc = Index().render
+          val doc = Index(Config.googleKey).render
           HttpEntity(
             MediaTypes.`text/html`,
             doc
@@ -36,7 +40,7 @@ object Server extends App with SimpleRoutingApp {
         }
       }
     } ~
-    pathPrefix("assets") { getFromResourceDirectory("") } ~
+    pathPrefix("assets") { getFromResourceDirectory("js") } ~
     (post & path("api" / Segments)) {s =>
       extract(_.request.entity.asString) { e =>
         complete {

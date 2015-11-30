@@ -1,4 +1,4 @@
-package gregmap.client
+package gregmap.frontend
 
 import org.scalajs.dom.ext.Ajax
 import upickle.{default => upickle}

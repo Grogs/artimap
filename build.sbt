@@ -6,6 +6,9 @@ version := "1.0"
 val scalaV = "2.11.7"
 
 
+
+lazy val scalajsOutputDir = server.base/"src"/"main"/"resources"/"js"
+
 lazy val server:sbt.Project = (project in file("server")).settings(
   scalaVersion := scalaV,
   libraryDependencies ++= {
@@ -20,9 +23,12 @@ lazy val server:sbt.Project = (project in file("server")).settings(
       "io.spray"            %%  "spray-can"     % sprayV,
       "io.spray"            %%  "spray-routing" % sprayV,
       "com.typesafe.akka"   %%  "akka-actor"    % akkaV,
+      "org.mapdb" % "mapdb" % "2.0-beta12",
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
+      "ch.qos.logback" % "logback-classic" % "1.1.3",
       "org.scalatest" %% "scalatest" % "2.2.4" % "test"
     )
-  }).dependsOn(sharedJvm)
+  }).settings(Revolver.settings).dependsOn(sharedJvm)
 
 lazy val client:sbt.Project = (project in file("client")).settings(
   scalaVersion := scalaV,
@@ -36,8 +42,7 @@ lazy val client:sbt.Project = (project in file("client")).settings(
 ).settings(
   Seq(fastOptJS, fullOptJS) map {
     packageJSKey =>
-      crossTarget in (Compile, packageJSKey) :=
-        baseDirectory.value / "../server/resources/"
+      crossTarget in (Compile, packageJSKey) := scalajsOutputDir
   }:_*
 ).enablePlugins(ScalaJSPlugin).dependsOn(sharedJs)
 
