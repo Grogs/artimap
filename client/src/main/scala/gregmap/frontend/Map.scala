@@ -3,6 +3,7 @@ package gregmap.frontend
 import autowire._
 import dao.{GeocodingDaoInter, TimeoutDaoInter}
 import google.maps.InfoWindowOptions
+import model.{Entry, LatLong}
 
 import org.scalajs.dom.raw.Element
 
@@ -28,14 +29,24 @@ class Map(val url: String, val target: Element, val getClient: Client) {
 
   val gmap = new google.maps.Map(target, opts)
 
+  /** Try getting it directly from Timeout's page, else fetch geocode from address */
+  def getPosition(entry: Entry): Future[LatLong] = {
+    getClient[TimeoutDaoInter].getGeocode(entry.relPath).call().flatMap{
+      case Some(validPos) => Future.successful(validPos)
+      case None => for {
+        address <- getClient[TimeoutDaoInter].getAddress(entry.relPath).call()
+        pos <- getClient[GeocodingDaoInter].retrieveLatLong(address getOrElse entry.address).call()
+      } yield pos
+    }
+  }
+
   val markersFuture = {
     val res = for {
       points <- entries
     } yield for {
       entry <- points
     } yield for { //Using flatmap, will start one Future and wait for it to finish before starting the next
-      address <- getClient[TimeoutDaoInter].getAddress(entry.relPath).call()
-      pos <- getClient[GeocodingDaoInter].retrieveLatLong(address getOrElse entry.address).call()
+      pos <- getPosition(entry)
       latLng = new google.maps.LatLng(pos.latitude, pos.longitude)
     } yield entry -> new google.maps.Marker(google.maps.MarkerOptions(
       position = latLng,

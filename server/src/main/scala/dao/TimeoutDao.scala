@@ -1,14 +1,15 @@
 package dao
 
-import java.io.File
-
 import com.typesafe.scalalogging.LazyLogging
-import model.{LatLong, Entry}
-import org.apache.commons.io.FileUtils
+import model.{Entry, LatLong}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
-import scala.collection.mutable
+import upickle.Js.Num
+import upickle.json.read
+
 import scala.collection.JavaConverters._
+import scala.collection.mutable
+import scala.util.Try
 
 class TimeoutDao(cache: mutable.Map[String, String]) extends TimeoutDaoInter with LazyLogging {
 
@@ -17,11 +18,17 @@ class TimeoutDao(cache: mutable.Map[String, String]) extends TimeoutDaoInter wit
     if (!articleId.matches(s"$regex")) throw new IllegalArgumentException(s"Invalid article ID: $articleId")
   }
 
-  def getGeocode(locationId: String): Option[LatLong] = None
-
-  def getAddress(locationId: String): Option[String] = getAddress(locationId, getPage(locationId))
-
+  override def getGeocode(locationId: String): Option[LatLong] = getGeocode(locationId, getPage(locationId))
+  override def getAddress(locationId: String): Option[String] = getAddress(locationId, getPage(locationId))
   override def getEntries(articleId: String) = getEntries(articleId, getPage(articleId))
+
+  def getGeocode(locationId: String, page: String): Option[LatLong] = for {
+    map <- Jsoup.parse(page).select("div[data-module=map][data-params]").asScala.headOption
+    params = map.attr("data-params")
+    json <- Try(read(params)).toOption
+    Num(lat) = json("lat")
+    Num(lng) = json("lng")
+  } yield LatLong(lat, lng)
 
   def getAddress(locationId: String, page: String): Option[String] = {
       Jsoup.parse(page).select("tr").asScala.find( e =>
@@ -48,7 +55,11 @@ class TimeoutDao(cache: mutable.Map[String, String]) extends TimeoutDaoInter wit
 
 
   def getEntries(articleId: String, page: String) = {
-    val selectors = List(".tab__panel > div > div > article", ".tiles:first-child > article")
+    val selectors = List(
+      ".tab__panel > div > div > article",
+      ".tiles:first-child > article",
+      ".main_content .medium_list article.feature-item.category_6"
+    )
     def select(selector: String): List[Element] = {
       Jsoup.parse(page).select(selector).asScala.toList
     }
