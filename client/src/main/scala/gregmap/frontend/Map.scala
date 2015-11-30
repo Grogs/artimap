@@ -34,7 +34,8 @@ class Map(val url: String, val target: Element, val getClient: Client) {
     } yield for {
       entry <- points
     } yield for { //Using flatmap, will start one Future and wait for it to finish before starting the next
-      pos <- getClient[GeocodingDaoInter].retrieveLatLong(entry.address).call()
+      address <- getClient[TimeoutDaoInter].getAddress(entry.relPath).call()
+      pos <- getClient[GeocodingDaoInter].retrieveLatLong(address getOrElse entry.address).call()
       latLng = new google.maps.LatLng(pos.latitude, pos.longitude)
     } yield entry -> new google.maps.Marker(google.maps.MarkerOptions(
       position = latLng,

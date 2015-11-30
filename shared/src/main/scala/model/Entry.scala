@@ -2,7 +2,9 @@ package model
 
 import scalatags.Text.all._
 
-case class Entry(name: String, link: String, location: String, description: String) {
+case class Entry(name: String, relPath: String, location: String, description: String) {
+  def link = s"http://www.timeout.com$relPath"
+
   def address = s"$name, $location, London, England"
 
   def markerHtml =

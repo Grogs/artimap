@@ -34,7 +34,7 @@ class GeocodingDao(googleKey: String, cache: mutable.Map[String, LatLong]) exten
           p.success(result)
         }
         def onFailure(e: Throwable) = {
-          logger.error("Failed to retrieve LatLong! for: $search", e)
+          logger.error(s"Failed to retrieve LatLong! for: $search", e)
           p.failure(e)
         }
       })

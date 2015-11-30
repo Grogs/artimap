@@ -3,7 +3,7 @@ package dao
 import java.io.File
 
 import com.typesafe.scalalogging.LazyLogging
-import model.Entry
+import model.{LatLong, Entry}
 import org.apache.commons.io.FileUtils
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -17,9 +17,21 @@ class TimeoutDao(cache: mutable.Map[String, String]) extends TimeoutDaoInter wit
     if (!articleId.matches(s"$regex")) throw new IllegalArgumentException(s"Invalid article ID: $articleId")
   }
 
+  def getGeocode(locationId: String): Option[LatLong] = None
+
+  def getAddress(locationId: String): Option[String] = getAddress(locationId, getPage(locationId))
+
+  override def getEntries(articleId: String) = getEntries(articleId, getPage(articleId))
+
+  def getAddress(locationId: String, page: String): Option[String] = {
+      Jsoup.parse(page).select("tr").asScala.find( e =>
+        e.children().size() == 2 && e.select("th").size() == 1 && e.select("th").text() == "Address:"
+      ).map(_.select("td").html().split("<br( /)?>").map(_.trim).mkString(", "))
+  }
+
   override def getPage(articleId: String) = {
     validate(articleId)
-    logger.debug("cached articles: " + cache.keySet.mkString(", "))
+    logger.debug("cached articles: " + cache.size  )
     if (cache.contains(articleId)) {
       logger.debug(s"cache hit: $articleId")
       cache(articleId)
@@ -34,7 +46,6 @@ class TimeoutDao(cache: mutable.Map[String, String]) extends TimeoutDaoInter wit
     }
   }
 
-  override def getEntries(articleId: String) = getEntries(articleId, getPage(articleId))
 
   def getEntries(articleId: String, page: String) = {
     val selectors = List(".tab__panel > div > div > article", ".tiles:first-child > article")
@@ -49,7 +60,7 @@ class TimeoutDao(cache: mutable.Map[String, String]) extends TimeoutDaoInter wit
       name = aTag.text
       location = html.select("span.listings_flag.icon").text
       description = html.select("p.feature_item__annotation--truncated").text
-    } yield Entry(name, s"http://www.timeout.com$link", location, description)
+    } yield Entry(name, link, location, description)
   }
 
 }
