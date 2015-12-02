@@ -1,4 +1,4 @@
-package model
+package shared.model
 
 import scalatags.Text.all._
 

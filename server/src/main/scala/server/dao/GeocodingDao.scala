@@ -1,14 +1,13 @@
-package dao
+package server.dao
 
 import com.google.maps.PendingResult.Callback
 import com.google.maps.model.GeocodingResult
 import com.google.maps.{GeoApiContext, GeocodingApi}
 import com.typesafe.scalalogging.LazyLogging
-import main.Config
-import model.LatLong
+import shared.dao.GeocodingDaoInter
+import shared.model.LatLong
 
 import scala.collection.mutable
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 
 

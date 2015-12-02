@@ -1,7 +1,8 @@
-package dao
+package server.dao
 
 import com.typesafe.scalalogging.LazyLogging
-import model.{Entry, LatLong}
+import shared.dao.TimeoutDaoInter
+import shared.model.{Entry, LatLong}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import upickle.Js.Num
@@ -36,7 +37,8 @@ class TimeoutDao(cache: mutable.Map[String, String]) extends TimeoutDaoInter wit
       ).map(_.select("td").html().split("<br( /)?>").map(_.trim).mkString(", "))
   }
 
-  override def getPage(articleId: String) = {
+  override def getPage(rawArticleId: String) = {
+    val articleId = rawArticleId.replaceFirst("http://www.timeout.com","")
     validate(articleId)
     logger.debug("cached articles: " + cache.size  )
     if (cache.contains(articleId)) {

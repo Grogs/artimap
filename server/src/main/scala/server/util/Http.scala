@@ -1,4 +1,4 @@
-package dao
+package server.util
 
 import java.net.{HttpURLConnection, URL}
 

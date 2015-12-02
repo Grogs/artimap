@@ -1,6 +1,6 @@
-package dao
+package shared.dao
 
-import model.LatLong
+import shared.model.LatLong
 
 import scala.concurrent.Future
 

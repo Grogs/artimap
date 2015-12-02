@@ -1,6 +1,6 @@
-package main
+package server.main
 
-import dao.TimeoutDao
+import server.Config
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

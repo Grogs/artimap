@@ -1,13 +1,14 @@
-package main
+package server
 
 import java.io.File
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
 import com.typesafe.config.{Config => TypesafeConfig, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
-import dao.{GeocodingDao, TimeoutDao}
-import model.LatLong
 import org.mapdb.DBMaker
+import server.dao.{GeocodingDao, TimeoutDao}
+import server.service.MapService
+import shared.model.{Entry, LatLong}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -37,13 +38,25 @@ class Config(private val config: TypesafeConfig = ConfigFactory.load()) extends 
   schedule(flushCaches(), 5.minutes)
 
   private val articleCache: mutable.Map[String,String] = db.hashMap[String, String]("articles").asScala
-  private val geocodingCache: mutable.Map[String, LatLong] = db.treeMap[String, LatLong]("google-geocoding").asScala
+//  private val geocodingCacheOld: mutable.Map[String, model.LatLong] = db.treeMap[String, model.LatLong]("google-geocoding").asScala
+  private val geocodingCache: mutable.Map[String, LatLong] = db.treeMap[String, LatLong]("geocoding-cache").asScala
+//  println("start")
+//  geocodingCacheOld.foreach{
+//    case (key, model.LatLong(lat,long)) =>
+//      geocodingCache.put(key, LatLong(lat,long))
+//  }
+//  println("done")
+  private val mapCache: mutable.Map[String, List[(Entry, LatLong)]] = db.treeMap[String, List[(Entry, LatLong)]]("map-service").asScala
 
   val googleKey = config.getString("api.key.google.maps")
 
   val geocodingDao = new GeocodingDao(googleKey, geocodingCache)
 
   val timeoutDao = new TimeoutDao(articleCache)
+
+
+
+  val mapService = new MapService(geocodingDao, timeoutDao, mapCache)
 
 }
 
