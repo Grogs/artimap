@@ -21,6 +21,8 @@ object Index {
           option(value:="/london/food-drink/londons-best-cafes-and-coffee-shops")("London's best cafés and coffee shops"),
 //          option(value:="/london/restaurants/londons-best-cycle-cafes")("London's best cycle cafés"),
           option(value:="/london/bars-and-pubs/the-best-places-to-drink-mulled-wine-in-london")("The best places to drink mulled wine in London"),
+//          option(value:="/london/bars-pubs/the-best-bars-for-drinking-gin-in-london")("The best bars for drinking gin in London"),
+          option(value:="/london/bars/best-bars-in-london-cocktail-bars")("The 50 best cocktail bars in London"),
           option(value:="/london/bars-pubs/londons-best-craft-beer-bars-and-pubs")("London's best craft beer bars and pubs"),
           option(value:="/london/shopping/christmas-markets-and-fairs-in-london")("Christmas markets and fairs in London"),
 //          option(value:="/london/things-to-do/christmas-lights-in-london")("Christmas lights in London"),
