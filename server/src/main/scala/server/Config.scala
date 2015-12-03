@@ -3,7 +3,7 @@ package server
 import java.io.File
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
-import com.typesafe.config.{Config => TypesafeConfig, ConfigFactory}
+import com.typesafe.config.{Config => TypesafeConfig, ConfigObject, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.mapdb.DBMaker
 import server.dao.{GeocodingDao, TimeoutDao}
@@ -60,4 +60,4 @@ class Config(private val config: TypesafeConfig = ConfigFactory.load()) extends 
 
 }
 
-object Config extends Config(ConfigFactory.load())
+object Config extends Config(ConfigFactory.parseResources("application.conf"))
