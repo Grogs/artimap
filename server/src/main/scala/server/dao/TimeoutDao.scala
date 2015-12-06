@@ -56,11 +56,20 @@ class TimeoutDao(cache: mutable.Map[String, String]) extends TimeoutDaoInter wit
   }
 
 
+  def sanitise(e: Element): Element = {
+    e.select("a,script,.hidden,style,form").remove()
+    e.select("i,b,em,span").unwrap()
+    e.removeAttr("class")
+    e.removeAttr("style")
+    e
+  }
+
   def getEntries(articleId: String, page: String) = {
     val selectors = List(
       ".tab__panel > div > div > article",
       ".tiles:first-child > article",
-      ".main_content .medium_list article.feature-item.category_6"
+      ".main_content .medium_list article.feature-item.category_6",
+      ".main_content  div.slide:not([class~=\"slide-0\"]) > div.feature-item"
     )
     def select(selector: String): List[Element] = {
       Jsoup.parse(page).select(selector).asScala.toList
@@ -72,7 +81,8 @@ class TimeoutDao(cache: mutable.Map[String, String]) extends TimeoutDaoInter wit
       link = aTag.attr("href")
       name = aTag.text
       location = html.select("span.listings_flag.icon").text
-      description = html.select("p.feature_item__annotation--truncated").text
+//      description = html.select("p").asScala.map(_.text).mkString("<br>")
+      description = html.select("p").asScala.map(sanitise).map(_.outerHtml()).mkString("<div>\n","\n\t","\n</div>")
     } yield Entry(name, link, location, description)
   }
 

@@ -30,25 +30,26 @@ class Map(val url: String, val target: Element, val getClient: Client) {
     } yield for { //Using flatmap, will start one Future and wait for it to finish before starting the next
       (entry, pos) <- entries
       latLng = new google.maps.LatLng(pos.latitude, pos.longitude)
-    } yield entry -> new google.maps.Marker(google.maps.MarkerOptions(
+    } yield (entry, pos, new google.maps.Marker(google.maps.MarkerOptions(
       position = latLng,
       map = gmap,
       title = entry.name
-    ))
+    )))
     res.map(_.toArray)
   }
 
-
+  val markerBounds = new google.maps.LatLngBounds()
   var activeInfoWindow = new google.maps.InfoWindow
 
-  markersFuture.map(_.foreach{ case (entry, marker) =>
-    val infoWindow = new google.maps.InfoWindow(InfoWindowOptions( content = entry.markerHtml.render))
+  markersFuture.map(_.foreach{ case (entry, pos, marker) =>
+    val infoWindow = new google.maps.InfoWindow(InfoWindowOptions( content = entry.markerHtml(pos).render))
     marker.addListener("click", (_:js.Any) => {
       activeInfoWindow.close()
       activeInfoWindow = infoWindow
       infoWindow.open(gmap, marker)
     })
-  })
+    markerBounds.extend(marker.getPosition())
+  }).foreach(_ => gmap.fitBounds(markerBounds))
 
   markersFuture.onComplete{
     case Success(res) => console.log(s"Markers all successfully created. Count: ${res.length}")

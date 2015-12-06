@@ -7,13 +7,14 @@ case class Entry(name: String, relPath: String, location: String, description: S
 
   def address = s"$name, $location, London, England"
 
-  def markerHtml =
+  def markerHtml(pos: LatLong) =
     div(id:="content",
       h1(id:="firstHeading", cls:="firstHeading")(name),
       div(id:="bodyContent",
-        p(description),
+        p(raw(description)),
         p(location),
-        p(a(href:=link,"Click here for details"))
+        p(a(href:=link,"Go to timeout.com for details")),
+        p(a(href:=pos.gmapDirectionsLink,"Get Directions with Google Maps"))
       )
     )
 }

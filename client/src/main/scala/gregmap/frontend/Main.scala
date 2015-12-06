@@ -1,11 +1,12 @@
 package gregmap.frontend
 
-import org.scalajs.dom.raw.{Event, HTMLSelectElement}
-import org.scalajs.dom.{console, document}
+import org.scalajs.dom.raw.{HashChangeEvent, Event, HTMLSelectElement}
+import org.scalajs.dom.{console, document, window}
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExport
-import scala.scalajs.js.{Dynamic, JSApp}
+import scala.scalajs.js.{Dynamic, JSApp, debugger}
+import scala.util.matching.Regex
 
 @JSExport
 object Main extends JSApp {
@@ -13,9 +14,23 @@ object Main extends JSApp {
 
   @JSExport
   def main(): Unit = {
+    //TODO consider https://github.com/Voltir/local-link
+
+    var map: Map = null
+    val mapRoute = "/map(/.*)".r
+
     val selectedArticle = Option(document.getElementById("selected-article")).getOrElse(throw new IllegalStateException("Cannot find article selector")).asInstanceOf[HTMLSelectElement]
     val mapContainer = Option(document.getElementById("map-container")).getOrElse(throw new IllegalStateException("Map container div not found"))
-    var map: Map = null
+
+    def route(path: String) = path match {
+      case mapRoute(article) =>
+        console.log(s"mapRoute($article)")
+        debugger()
+        loadMap(article)
+      case unmatched =>
+        console.log(s"Failed to route: $path")
+        debugger()
+    }
 
     def loadMap(articleId: String) = {
       console.log(s"make map - start - $articleId")
@@ -27,5 +42,13 @@ object Main extends JSApp {
     def loadFrom(e: Event): Unit = loadMap(e.target.asInstanceOf[HTMLSelectElement].value)
 
     selectedArticle.onchange = loadFrom _
+
+    window.onhashchange = (e: HashChangeEvent) => {
+      if (e.newURL contains "#")
+        route(e.newURL.dropWhile(_ != '#').drop(1))
+    }
+
   }
+
+
 }
