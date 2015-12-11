@@ -31,7 +31,7 @@ class Server(config: Config) extends SimpleRoutingApp {
   val geocodingRouter = Router.route[GeocodingDaoInter](config.geocodingDao)
   val mapServiceRouter = Router.route[MapServiceInter](config.mapService)
 
-  startServer(interface = "localhost", port = port) {
+  startServer(interface = "0.0.0.0", port = port) {
     (get & path("flush")) {complete {
       config .flushCaches()
       "Done!"

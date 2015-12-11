@@ -9,24 +9,30 @@ import scalatags.Text.tags2.{title=>titleTag}
 object Index {
 
   type City = String
-  case class Article(name: String, url: String, tags: Seq[String], publicationDate: String)
+  case class Article(name: String, url: String, tags: Seq[Tag], publicationDate: String)
 
-  
+  sealed trait Tag
+  case object Food extends Tag
+  case object Shopping extends Tag
+  case object `Pubs/Bars` extends Tag
+  case object `Coffee/Cafes` extends Tag
+  case object `Things To Do` extends Tag
+
   
   val articles: Map[City, Seq[Article]] = Map(
     "London" -> List(
-      Article("The top ten restaurants in London", "/london/food-drink/top-ten-restaurants-in-london", Nil, "" ),
-      Article("The 100 best bars and pubs in London", "/london/bars-pubs/the-100-best-bars-and-pubs-in-london-full-list", Nil, "" ),
-      Article("London's best cafés and coffee shops", "/london/food-drink/londons-best-cafes-and-coffee-shops", Nil, "" ),
-      Article("The best places to drink mulled wine in London", "/london/bars-and-pubs/the-best-places-to-drink-mulled-wine-in-london", Nil, "" ),
-      Article("The 50 best cocktail bars in London", "/london/bars/best-bars-in-london-cocktail-bars", Nil, "" ),
-      Article("London's best craft beer bars and pubs", "/london/bars-pubs/londons-best-craft-beer-bars-and-pubs", Nil, "" ),
-      Article("Christmas markets and fairs in London", "/london/shopping/christmas-markets-and-fairs-in-london", Nil, "" ),
-      Article("London's best burgers", "/london/food-and-drink/londons-best-burger-restaurants-1", Nil, ""),
-      Article("Ice skating in London", "/london/things-to-do/ice-skating-in-london", Nil, "" )
+      Article("The top ten restaurants in London", "/london/food-drink/top-ten-restaurants-in-london", Food::Nil, "" ),
+      Article("The 100 best bars and pubs in London", "/london/bars-pubs/the-100-best-bars-and-pubs-in-london-full-list", `Pubs/Bars`::Nil, "" ),
+      Article("London's best cafés and coffee shops", "/london/food-drink/londons-best-cafes-and-coffee-shops", `Coffee/Cafes`::Nil, "" ),
+      Article("The best places to drink mulled wine in London", "/london/bars-and-pubs/the-best-places-to-drink-mulled-wine-in-london", `Pubs/Bars`::`Things To Do`::Nil, "" ),
+      Article("The 50 best cocktail bars in London", "/london/bars/best-bars-in-london-cocktail-bars", `Pubs/Bars`::Nil, "" ),
+      Article("London's best craft beer bars and pubs", "/london/bars-pubs/londons-best-craft-beer-bars-and-pubs", `Pubs/Bars`::Nil, "" ),
+      Article("Christmas markets and fairs in London", "/london/shopping/christmas-markets-and-fairs-in-london", `Things To Do`::Shopping::Nil, "" ),
+      Article("London's best burgers", "/london/food-and-drink/londons-best-burger-restaurants-1", Food::Nil, ""),
+      Article("Ice skating in London", "/london/things-to-do/ice-skating-in-london", `Things To Do`::Nil, "" )
     ),
     "Bristol" -> List(
-      Article("The best pubs in Bristol", "/bristol/bars-pubs/the-best-pubs-in-bristol", Nil, "")
+      Article("The best pubs in Bristol", "/bristol/bars-pubs/the-best-pubs-in-bristol", `Pubs/Bars`::Nil, "")
     )
 )
   def apply(googleApiKey: String) =
@@ -35,6 +41,7 @@ object Index {
         titleTag("Map")
       ),
       body(
+        div(),
         select(id := "selected-article",
           option(value:="?", selected:="selected", disabled)("Please select an article"),
           for ( (city, articlesForCity) <-  articles.toList )

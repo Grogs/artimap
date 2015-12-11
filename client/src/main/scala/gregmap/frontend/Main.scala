@@ -14,22 +14,19 @@ object Main extends JSApp {
 
   @JSExport
   def main(): Unit = {
-    //TODO consider https://github.com/Voltir/local-link
-
     var map: Map = null
     val mapRoute = "/map(/.*)".r
 
     val selectedArticle = Option(document.getElementById("selected-article")).getOrElse(throw new IllegalStateException("Cannot find article selector")).asInstanceOf[HTMLSelectElement]
     val mapContainer = Option(document.getElementById("map-container")).getOrElse(throw new IllegalStateException("Map container div not found"))
 
+    def relPath(url: String) = if (url contains '#') url.dropWhile(_ != '#').drop(1) else ""
     def route(path: String) = path match {
       case mapRoute(article) =>
         console.log(s"mapRoute($article)")
-        debugger()
         loadMap(article)
       case unmatched =>
         console.log(s"Failed to route: $path")
-        debugger()
     }
 
     def loadMap(articleId: String) = {
@@ -43,10 +40,11 @@ object Main extends JSApp {
 
     selectedArticle.onchange = loadFrom _
 
-    window.onhashchange = (e: HashChangeEvent) => {
-      if (e.newURL contains "#")
-        route(e.newURL.dropWhile(_ != '#').drop(1))
-    }
+    window.onhashchange = (e: HashChangeEvent) => route(relPath(e.newURL))
+
+    console.log("add load listener")
+    route(relPath(document.URL))
+    document.body.addEventListener("load", (_:Event) => route(relPath(document.URL)))
 
   }
 
