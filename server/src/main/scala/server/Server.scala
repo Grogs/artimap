@@ -18,7 +18,7 @@ class Server(config: Config) extends SimpleRoutingApp {
     def write[Result: upickle.Writer](r: Result) = upickle.write(r)
   }
 
-  implicit val system = ActorSystem("on-spray-can")
+  implicit val system = ActorSystem("spray-server")
 
   val port = Properties.envOrElse("PORT", "8080").toInt
 
@@ -32,29 +32,32 @@ class Server(config: Config) extends SimpleRoutingApp {
   val mapServiceRouter = Router.route[MapServiceInter](config.mapService)
 
   startServer(interface = "0.0.0.0", port = port) {
-    (get & path("flush")) {complete {
-      config .flushCaches()
-      "Done!"
-    } } ~
-    path("index") {
-      get {
-        complete {
-          val doc = Index(config.googleKey).render
-          HttpEntity(
-            MediaTypes.`text/html`,
-            doc
-          )
-        }
+    (get & path("flush")) {
+      complete {
+        config .flushCaches()
+        "Done!"
       }
     } ~
-    pathPrefix("assets") { getFromResourceDirectory("js") } ~
-    (post & path("api" / Segments)) {s =>
-      extract(_.request.entity.asString) { e =>
-        complete {
-          (timeoutRouter orElse geocodingRouter orElse mapServiceRouter)(req(s,e))
+    (get & path("index")) {
+      complete {
+        val doc = Index(config.googleKey).render
+        HttpEntity(
+          MediaTypes.`text/html`,
+          doc
+        )
+      }
+    } ~
+    pathPrefix("assets") {
+      getFromResourceDirectory("js")
+    } ~
+    (post & path("api" / Segments)) { s =>
+        extract(_.request.entity.asString) { e =>
+          complete {
+            (timeoutRouter orElse geocodingRouter orElse mapServiceRouter)(req(s,e))
+          }
         }
       }
-    }
+
   }
 }
 

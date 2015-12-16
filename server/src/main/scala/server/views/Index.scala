@@ -1,9 +1,10 @@
 package server.views
 
 import scalatags.Text
-import scalatags.Text.{TypedTag, all}
 import scalatags.Text.all._
-import scalatags.Text.tags2.{title=>titleTag}
+import scalatags.Text.tags2.{title => titleTag}
+import scalatags.Text.{TypedTag, all}
+import scala.reflect.runtime.universe.typeTag
 
 /**
   * Created by Greg Dorrell on 02/12/2015.
@@ -11,7 +12,7 @@ import scalatags.Text.tags2.{title=>titleTag}
 object Index {
 
   type City = String
-  case class Article(name: String, url: String, tags: Seq[Tag], publicationDate: String)
+  case class Article(name: String, url: String, tags: List[Tag], publicationDate: String)
 
   sealed trait Tag
   case object Food extends Tag
@@ -19,9 +20,13 @@ object Index {
   case object `Pubs/Bars` extends Tag
   case object `Coffee/Cafes` extends Tag
   case object `Things To Do` extends Tag
+  val rawtags = typeTag[Tag].tpe.typeSymbol.asClass.knownDirectSubclasses
+  val tags = typeTag[Tag].tpe.typeSymbol.asClass.knownDirectSubclasses.map( tag =>
+    tag.name.decodedName.toString
+  )
 
   
-  val articles: Map[City, Seq[Article]] = Map(
+  val articles: Map[City, List[Article]] = Map(
     "London" -> List(
       Article("The top ten restaurants in London", "/london/food-drink/top-ten-restaurants-in-london", Food::Nil, "" ),
       Article("The 100 best bars and pubs in London", "/london/bars-pubs/the-100-best-bars-and-pubs-in-london-full-list", `Pubs/Bars`::Nil, "" ),
@@ -48,16 +53,18 @@ object Index {
       )
     )
 
-  def createBody: Text.TypedTag[String] = {
-    div(
+  def createBody = {
+    def articleSelect(articles: List[Article]): TypedTag[String] = {
       select(id := "selected-article",
         option(value := "?", selected := "selected", disabled)("Please select an article"),
-        for ((city, articlesForCity) <- articles.toList)
-          yield optgroup("label".attr := city,
-            for (a <- articlesForCity)
-              yield option(value := a.url)(a.name)
-          )
-      ),
+        for (a <- articles) yield option(value := a.url)(a.name)
+      )
+    }
+    div(
+      div(
+        "I am in ", select(for (city <- articles.keys.toList) yield option(value := city)(city)),
+        " and I would like to see articles about ", select(for (tag <- tags.toList) yield option(value := tag)(tag)),
+        articleSelect(articles("London"))),
       a(href := "#/map/london/shopping/christmas-markets-and-fairs-in-london", "Go straight to christmas markets map"),
       div(id := "map-container", style := "height: 100%;")
     )
@@ -68,6 +75,7 @@ object Index {
       script(src := "/assets/client-fastopt.js"),
       script(`type` := "text/javascript")("gregmap.frontend.Main().main()"))
   }
+
 }
 
 
