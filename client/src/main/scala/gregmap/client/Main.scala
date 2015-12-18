@@ -1,21 +1,27 @@
-package gregmap.frontend
+package gregmap.client
 
-import org.scalajs.dom.raw.{HashChangeEvent, Event, HTMLSelectElement}
+import gregmap.client.pages.Homepage
+import org.scalajs.dom.raw.{Event, HTMLSelectElement, HashChangeEvent}
 import org.scalajs.dom.{console, document, window}
 
 import scala.scalajs.js
+import scala.scalajs.js.Dynamic
 import scala.scalajs.js.annotation.JSExport
-import scala.scalajs.js.{Dynamic, JSApp, debugger}
-import scala.util.matching.Regex
 
 @JSExport
-object Main extends JSApp {
-
+object Main extends App {
 
   @JSExport
-  def main(): Unit = {
+  def main(): Unit = init(" ")
+
+  @JSExport
+  def init(containerId: String): Unit = {
     var map: Map = null
     val mapRoute = "/map(/.*)".r
+
+    val container = document.getElementById(containerId)
+
+    container.innerHTML = new Homepage().render.render
 
     val selectedArticle = Option(document.getElementById("selected-article")).getOrElse(throw new IllegalStateException("Cannot find article selector")).asInstanceOf[HTMLSelectElement]
     val mapContainer = Option(document.getElementById("map-container")).getOrElse(throw new IllegalStateException("Map container div not found"))
@@ -47,6 +53,5 @@ object Main extends JSApp {
     document.body.addEventListener("load", (_:Event) => route(relPath(document.URL)))
 
   }
-
 
 }

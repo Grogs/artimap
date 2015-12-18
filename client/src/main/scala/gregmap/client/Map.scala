@@ -1,4 +1,4 @@
-package gregmap.frontend
+package gregmap.client
 
 import autowire._
 import google.maps.InfoWindowOptions
