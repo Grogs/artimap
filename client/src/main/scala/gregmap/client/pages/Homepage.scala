@@ -42,11 +42,12 @@ class Homepage extends Page {
       Article("Ice skating in London", "/london/things-to-do/ice-skating-in-london", `Things To Do`::Nil, "" )
     ),
     "Bristol" -> List(
-      Article("The best pubs in Bristol", "/bristol/bars-pubs/the-best-pubs-in-bristol", `Pubs/Bars`::Nil, "")
+      Article("The best pubs in Bristol", "/bristol/bars-pubs/the-best-pubs-in-bristol", `Pubs/Bars`::Nil, ""),
+      Article("The best coffee shops and cafés in Bristol","/bristol/restaurants/the-best-coffee-shops-and-cafes-in-bristol", `Coffee/Cafes`::Nil, "")
+
     )
     //DISABLED
     /*
-                option(value:="/bristol/restaurants/the-best-coffee-shops-and-cafes-in-bristol")("The best coffee shops and cafés in Bristol"),
                 option(value:="/bristol/bars-and-pubs/the-best-craft-beer-bars-in-bristol")("The best craft beer bars in Bristol")
               option(value:="/london/shopping/the-100-best-shops-in-london")("The 100 best shops in London"),
               option(value:="/london/restaurants/londons-best-cycle-cafes")("London's best cycle cafés"),
@@ -66,7 +67,7 @@ class Homepage extends Page {
       div(
         "I am in ", select(for (city <- articles.keys.toList) yield option(value := city)(city)),
         " and I would like to see articles about ", select(for ((tag,_) <- tags.toList) yield option(value := tag)(tag)),
-        articleSelect(articles("London"))),
+        articleSelect(articles("Bristol"))),
       a(href := "#/map/london/shopping/christmas-markets-and-fairs-in-london", "Go straight to christmas markets map"),
       div(id := "map-container", style := "height: 100%;")
     )

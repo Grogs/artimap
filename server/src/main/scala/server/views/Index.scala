@@ -21,7 +21,7 @@ object Index {
         div(id := containerId),
         Seq(script(src := s"https://maps.googleapis.com/maps/api/js"),
           script(src := "/assets/client-fastopt.js"),
-          script(`type` := "text/javascript")(s"gregmap.frontend.Main().init('$containerId')"))
+          script(`type` := "text/javascript")(s"gregmap.client.Main().init('$containerId')"))
       )
     )
   }

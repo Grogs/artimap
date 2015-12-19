@@ -5,17 +5,18 @@ import org.scalajs.dom.raw.{Event, HTMLSelectElement, HashChangeEvent}
 import org.scalajs.dom.{console, document, window}
 
 import scala.scalajs.js
-import scala.scalajs.js.Dynamic
+import scala.scalajs.js.{Dynamic,debugger}
 import scala.scalajs.js.annotation.JSExport
 
 @JSExport
-object Main extends App {
+object Main extends js.JSApp {
 
   @JSExport
-  def main(): Unit = init(" ")
+  def main(): Unit = init("page-containers")
 
   @JSExport
   def init(containerId: String): Unit = {
+    debugger
     var map: Map = null
     val mapRoute = "/map(/.*)".r
 
@@ -26,7 +27,7 @@ object Main extends App {
     val selectedArticle = Option(document.getElementById("selected-article")).getOrElse(throw new IllegalStateException("Cannot find article selector")).asInstanceOf[HTMLSelectElement]
     val mapContainer = Option(document.getElementById("map-container")).getOrElse(throw new IllegalStateException("Map container div not found"))
 
-    def relPath(url: String) = if (url contains '#') url.dropWhile(_ != '#').drop(1) else ""
+    def relPath(url: String) = if (url contains '#') url.dropWhile(_ != '#').drop(1) else url
     def route(path: String) = path match {
       case mapRoute(article) =>
         console.log(s"mapRoute($article)")

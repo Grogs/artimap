@@ -26,8 +26,15 @@ lazy val server:sbt.Project = (project in file("server")).settings(
       "org.mapdb" % "mapdb" % "2.0-beta12",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
       "ch.qos.logback" % "logback-classic" % "1.1.3",
-      "org.scalatest" %% "scalatest" % "2.2.4" % "test"
-    )
+      "org.scalatest" %% "scalatest" % "2.2.4" % "test",
+      "org.scala-lang" % "scala-reflect" % scalaV,
+    //      "com.github.julien-truffaut"  %%  "monocle-core"    % "1.2.0-RC1",
+//      "com.github.julien-truffaut"  %%  "monocle-macro"   % "1.2.0-RC1",
+      //      "com.github.finagle" %% "finch-core" % "0.9.2",
+      "com.lihaoyi" %% "pprint" % "0.3.6"
+    )//,
+//    libraryDependencies += "com.lihaoyi" % "ammonite-repl" % "0.5.1" % "test" cross CrossVersion.full
+//    initialCommands in console := """ammonite.repl.Main.run("")"""
   }).settings(Revolver.settings).dependsOn(sharedJvm)
 
 lazy val client:sbt.Project = (project in file("client")).settings(

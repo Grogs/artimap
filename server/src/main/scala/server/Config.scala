@@ -37,9 +37,14 @@ class Config(private val config: TypesafeConfig = ConfigFactory.load()) extends 
 
   schedule(flushCaches(), 5.minutes)
 
-  private val articleCache: mutable.Map[String,String] = db.hashMap[String, String]("articles").asScala
+  private val oldArticleCache: mutable.Map[String,String] = db.hashMap[String, String]("articles").asScala
+  private val articleCache: mutable.Map[String,List[String]] = db.hashMap[String, List[String]]("articles-cache").asScala
+  if (articleCache.isEmpty && !oldArticleCache.isEmpty) oldArticleCache.foreach{ case (key, value) =>
+    logger.debug(s"migrating article cache: $key")
+    articleCache.put(key, List(value))
+  }
   private val geocodingCache: mutable.Map[String, LatLong] = db.treeMap[String, LatLong]("geocoding-cache").asScala
-  private val oldMapCache: mutable.Map[String, List[(Entry, LatLong)]] = db.treeMap[String, List[(Entry, LatLong)]]("map-service").asScala
+//  private val oldMapCache: mutable.Map[String, List[(Entry, LatLong)]] = db.treeMap[String, List[(Entry, LatLong)]]("map-service").asScala
   private val mapCache: mutable.Map[String, List[(Entry, LatLong)]] = db.treeMap[String, List[(Entry, LatLong)]]("mapservice-cache").asScala
 
   //Remove invalid (empty) maps
@@ -49,11 +54,11 @@ class Config(private val config: TypesafeConfig = ConfigFactory.load()) extends 
     _ = logger.info(s"Removing invalid/empty map: $key")
   } mapCache.remove(key)
 
+//  oldMapCache:    ${oldMapCache.size}
   logger.debug(
     s"""Cache stats:
        |  articleCache:   ${articleCache.size}
        |  geocodingCache: ${geocodingCache.size}
-       |  oldMapCache:    ${oldMapCache.size}
        |  mapCache:       ${mapCache.size}
      """.stripMargin)
 

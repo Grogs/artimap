@@ -11,7 +11,7 @@ trait TimeoutDaoInter {
 
   def getAddress(locationId: String): Option[String]
 
-  def getPage(articleId: String): String
+  def getPage(articleId: String): List[String]
 
   def getEntries(articleId: String): List[Entry]
 }

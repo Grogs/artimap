@@ -12,16 +12,11 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.Try
 
-class TimeoutDao(cache: mutable.Map[String, String]) extends TimeoutDaoInter with LazyLogging {
+class TimeoutDao(cache: mutable.Map[String, List[String]]) extends TimeoutDaoInter with LazyLogging {
 
-  def validate(articleId: String) = {
-    val regex = """/([.a-zA-Z0-9\-\_]+/?)+"""
-    if (!articleId.matches(s"$regex")) throw new IllegalArgumentException(s"Invalid article ID: $articleId")
-  }
-
-  override def getGeocode(locationId: String): Option[LatLong] = getGeocode(locationId, getPage(locationId))
-  override def getAddress(locationId: String): Option[String] = getAddress(locationId, getPage(locationId))
-  override def getEntries(articleId: String) = getEntries(articleId, getPage(articleId))
+  override def getGeocode(locationId: String): Option[LatLong] = getPage(locationId).flatMap(getGeocode(locationId, _)).headOption
+  override def getAddress(locationId: String): Option[String] = getPage(locationId).flatMap(getAddress(locationId, _)).headOption
+  override def getEntries(articleId: String) = getPage(articleId) flatMap (getEntries(articleId, _))
 
   def getGeocode(locationId: String, page: String): Option[LatLong] = for {
     map <- Jsoup.parse(page).select("div[data-module=map][data-params]").asScala.headOption
@@ -37,9 +32,8 @@ class TimeoutDao(cache: mutable.Map[String, String]) extends TimeoutDaoInter wit
       ).map(_.select("td").html().split("<br( /)?>").map(_.trim).mkString(", "))
   }
 
-  override def getPage(rawArticleId: String) = {
+  override def getPage(rawArticleId: String): List[String] = {
     val articleId = rawArticleId.replaceFirst("http://www.timeout.com","")
-    validate(articleId)
     logger.debug("cached articles: " + cache.size  )
     if (cache.contains(articleId)) {
       logger.debug(s"cache hit: $articleId")
@@ -49,9 +43,21 @@ class TimeoutDao(cache: mutable.Map[String, String]) extends TimeoutDaoInter wit
       logger.debug(s"Retrieving: $url")
       val page = io.Source.fromURL(url).mkString
       logger.debug(s"Retrieved for $url:\n${page.take(800)}")
+      val pages =
+        if (page.contains("class=\"load_more_widget__button\"")) {
+          logger.debug(s"page has pagination, doing crazy shit: $articleId")
+          val nextPageId = Jsoup.parse(page).select("a.load_more_widget__button").last().attr("href")
+          def getNumber(url:String) = Try(url.replaceFirst(".*&page_number=([0-9]+)$", "$1").toInt).toOption.getOrElse(0)
+          if (getNumber(nextPageId) > getNumber(articleId))
+            page :: getPage(nextPageId)
+          else
+            page :: Nil
+        } else {
+          page :: Nil
+        }
       logger.debug(s"populating cache for: $articleId")
-      cache.put(articleId, page)
-      page
+      cache.put(articleId, pages)
+      pages
     }
   }
 
