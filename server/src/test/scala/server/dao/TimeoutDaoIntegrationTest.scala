@@ -12,6 +12,6 @@ class TimeoutDaoIntegrationTest extends FunSuite with MustMatchers {
   test("bristol coffee") {
     val entries = Config.timeoutDao.getEntries("/bristol/restaurants/the-best-coffee-shops-and-cafes-in-bristol")
     println(entries)
-    entries.size mustEqual 12
+  entries.size mustEqual 21
   }
 }

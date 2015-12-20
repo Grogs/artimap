@@ -31,7 +31,9 @@ lazy val server:sbt.Project = (project in file("server")).settings(
     //      "com.github.julien-truffaut"  %%  "monocle-core"    % "1.2.0-RC1",
 //      "com.github.julien-truffaut"  %%  "monocle-macro"   % "1.2.0-RC1",
       //      "com.github.finagle" %% "finch-core" % "0.9.2",
-      "com.lihaoyi" %% "pprint" % "0.3.6"
+      "com.lihaoyi" %% "pprint" % "0.3.6",
+      "com.lihaoyi" %%% "scalarx" % "0.2.8"
+
     )//,
 //    libraryDependencies += "com.lihaoyi" % "ammonite-repl" % "0.5.1" % "test" cross CrossVersion.full
 //    initialCommands in console := """ammonite.repl.Main.run("")"""
