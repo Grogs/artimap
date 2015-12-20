@@ -74,7 +74,7 @@ class TimeoutDao(cache: mutable.Map[String, List[String]]) extends TimeoutDaoInt
     val selectors = List(
       ".tab__panel > div > div > article",
       ".tiles:first-child > article",
-      ".main_content .medium_list article.feature-item.category_6",
+      ".main_content .medium_list article.feature-item",
       ".main_content  div.slide:not([class~=\"slide-0\"]) > div.feature-item"
     )
     def select(selector: String): List[Element] = {
