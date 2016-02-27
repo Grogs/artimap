@@ -14,6 +14,11 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.duration.{FiniteDuration, _}
 
+object Environment extends Enumeration {
+  type Environment = Value
+  val PROD, DEV = Value
+}
+
 class Config(private val config: TypesafeConfig = ConfigFactory.load()) extends LazyLogging {
   private val db = DBMaker
     .fileDB(new File("test.db"))
@@ -21,6 +26,8 @@ class Config(private val config: TypesafeConfig = ConfigFactory.load()) extends 
 //    .executorEnable()
     .closeOnJvmShutdown()
     .make()
+
+  val environment = Environment withName sys.props.get("ENVIRONMENT").getOrElse(throw new IllegalArgumentException("Please specify the ENVIRONMENT env variable"))
 
   val scheduler = new ScheduledThreadPoolExecutor(1)
   def schedule(task: => Unit, frequency: FiniteDuration, initialDelay: Option[FiniteDuration] = None) = scheduler.scheduleAtFixedRate(
@@ -67,8 +74,6 @@ class Config(private val config: TypesafeConfig = ConfigFactory.load()) extends 
   val geocodingDao = new GeocodingDao(googleKey, geocodingCache)
 
   val timeoutDao = new TimeoutDao(articleCache)
-
-
 
   val mapService = new MapService(geocodingDao, timeoutDao, mapCache)
 

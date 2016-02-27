@@ -1,3 +1,4 @@
+import spray.revolver.RevolverPlugin.Revolver.reStart
 
 name := """timeout"""
 
@@ -37,7 +38,14 @@ lazy val server:sbt.Project = (project in file("server")).settings(
     )//,
 //    libraryDependencies += "com.lihaoyi" % "ammonite-repl" % "0.5.1" % "test" cross CrossVersion.full
 //    initialCommands in console := """ammonite.repl.Main.run("")"""
-  }).settings(Revolver.settings).dependsOn(sharedJvm)
+  }).settings(
+    Revolver.settings,
+    javaOptions in reStart += "-DENVIRONMENT=DEV",
+    javaOptions in run += "-DENVIRONMENT=PROD",
+    test in assembly := {}, //Disable tests during 'sbt assembly'
+    javaOptions in assembly += "-DENVIRONMENT=PROD",
+    mainClass in assembly := Some("server.Server")
+  ).dependsOn(sharedJvm)
 
 lazy val client:sbt.Project = (project in file("client")).settings(
   scalaVersion := scalaV,

@@ -8,6 +8,7 @@ import rx._
 import example.Framework._
 
 import scala.scalajs.js,js.{debugger,Dynamic}
+import scalatags.JsDom
 
 import scalatags.JsDom.TypedTag
 import scalatags.JsDom.all._
@@ -33,11 +34,6 @@ class Homepage extends Page {
     "cafes" -> `Coffee/Cafes`,
     "things" -> `Things To Do`
   )
-
-//  val rawtags = typeTag[Tag].tpe.typeSymbol.asClass.knownDirectSubclasses
-//  val tags = typeTag[Tag].tpe.typeSymbol.asClass.knownDirectSubclasses.map( tag =>
-//    tag.name.decodedName.toString
-//  )
 
   val articles = Map[City, List[Article]](
     "London" -> List(
@@ -77,7 +73,7 @@ class Homepage extends Page {
     } yield article
   ).toList}
 
-  val mapContainer = div(id := "map-container", style := "height: 100%;").render
+  val mapContainer = div(id := "map-container").render
   var map: Map = null
 
   private val styleSheet = styleElem(`type`:="text/css",
@@ -102,14 +98,71 @@ class Homepage extends Page {
       |		select:active {
       |		    border: 1px solid #fff;
       |		}
-		""".stripMargin)
+      |
+      |  #title {
+      |			letter-spacing: 4px;
+      |     text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+      |     text-align: center;
+      |  }
+      |
+      |  #title > h2 {
+      |     font-weight: normal;
+      |  }
+      |
+      |  body {
+      |    	font-family: HelveticaNeue-Light;
+      |  }
+      |  body, body * {
+      |    margin: 0;
+      |  }
+      |
+      |  #parent {
+      |    display: -webkit-box;      /* OLD - iOS 6-, Safari 3.1-6 */
+      |    display: -moz-box;         /* OLD - Firefox 19- (buggy but mostly works) */
+      |    display: -ms-flexbox;      /* TWEENER - IE 10 */
+      |    display: -webkit-flex;     /* NEW - Chrome */
+      |    display: flex;             /* NEW, Spec - Opera 12.1, Firefox 20+ */
+      |    flex-flow: column;
+      |    height: 100%;
+      |  }
+      |
+      |  #article-selection {}
+      |
+      |  #map-container {
+      |    min-height: 50%;
+      |    flex: 1;
+      |  }
+      |
+      |
+       		""".stripMargin)
+
+  val introJsScript = script(`type`:="text/javascript", """
+    function runIntro() {
+      console.log("completedIntro: "+localStorage.getItem('completedIntro'))
+      if (localStorage.getItem('completedIntro') == null)
+        introJs()
+          .setOptions({
+            "showStepNumbers": false,
+            "steps": [
+              {intro: "artimap shows the entries in timeout articles in google map form"},
+              {element: document.getElementById("city-select"),intro: "Select the city you're interested in"},
+              {element: document.getElementById("tag-select"),intro: "Optionally select the type of articles you're interested in"},
+              {element: document.getElementById("selected-article"),intro: "Select an article to see it mapped out"}
+            ]
+          })
+          .oncomplete(function() { localStorage.setItem('completedIntro', true) })
+          .start()
+    }
+    runIntro()
+  """)
 
   def render = {
     def default(text: String, mods: Modifier*) = option(value := "?", selected := "selected", mods)(text)
 
     def articleSelect(articles: List[Article]) = {
       val res =
-        select(id := "selected-article",
+        select(
+          id := "selected-article",
           default("Please select an article", disabled),
           Rx{ optgroup(for (a <- filteredArticles()) yield option(value := a.url)(a.name)) }
         ).render
@@ -117,16 +170,23 @@ class Homepage extends Page {
       res
     }
     val citySelect = {
-      val res = select(default("everywhere"),for (city <- articles.keys.toList) yield option(value := city)(city)).render
+      val res = select(id := "city-select",
+        default("everywhere"),
+        for (city <- articles.keys.toList) yield option(value := city)(city)
+      ).render
       res.onchange = (e: Event) => selectedCity() = if(articles.keys.toList contains getSelectValue(e)) Option(getSelectValue(e)) else None
       res
     }
     val tagSelect = {
-      val res = select(default("everything"), for ((key, tag) <- tags.toList) yield option(value := key)(tag.toString)).render
+      val res = select(
+        id := "tag-select",
+        default("everything"),
+        for ((key, tag) <- tags.toList) yield option(value := key)(tag.toString)
+      ).render
       res.onchange = (e: Event) => selectedTag() = tags.get(getSelectValue(e))
       res
     }
-    div(
+    div( id:= "parent",
       styleSheet,
       div( id:="article-selection",
         div("I am in ", citySelect, " and I would like to see articles about ", tagSelect),
@@ -134,6 +194,7 @@ class Homepage extends Page {
           articleSelect(articles("Bristol"))
         )
       ),
+      introJsScript,
       mapContainer
     )
   }

@@ -13,8 +13,8 @@ case class Entry(name: String, relPath: String, location: String, description: S
       div(id:="bodyContent",
         p(raw(description)),
         p(location),
-        p(a(href:=link,"Go to timeout.com for details")),
-        p(a(href:=pos.gmapDirectionsLink,"Get Directions with Google Maps"))
+        p(a(href:=link, target:="_blank", "Go to timeout.com for details")),
+        p(a(href:=pos.gmapDirectionsLink,target:="_blank", "Get Directions with Google Maps"))
       )
     )
 }

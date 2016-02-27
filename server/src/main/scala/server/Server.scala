@@ -38,9 +38,9 @@ class Server(config: Config) extends SimpleRoutingApp {
         "Done!"
       }
     } ~
-    (get & path("index")) {
+    (get & (path("index") | path(""))) {
       complete {
-        val doc = Index(config.googleKey).render
+        val doc = Index(config.googleKey, config.environment).render
         HttpEntity(
           MediaTypes.`text/html`,
           doc
