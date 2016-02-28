@@ -20,14 +20,16 @@ object Environment extends Enumeration {
 }
 
 class Config(private val config: TypesafeConfig = ConfigFactory.load()) extends LazyLogging {
+  private val dbFile = new File("test.db")
+  logger.debug(s"${dbFile.getCanonicalPath} exists: ${dbFile.exists()}")
   private val db = DBMaker
-    .fileDB(new File("test.db"))
+    .fileDB(dbFile)
 //    .asyncWriteEnable()
 //    .executorEnable()
     .closeOnJvmShutdown()
     .make()
 
-  val environment = Environment withName sys.props.get("ENVIRONMENT").getOrElse(throw new IllegalArgumentException("Please specify the ENVIRONMENT env variable"))
+  val environment = Environment withName sys.env.get("ENVIRONMENT").getOrElse(throw new IllegalArgumentException("Please specify the ENVIRONMENT env variable"))
 
   val scheduler = new ScheduledThreadPoolExecutor(1)
   def schedule(task: => Unit, frequency: FiniteDuration, initialDelay: Option[FiniteDuration] = None) = scheduler.scheduleAtFixedRate(
