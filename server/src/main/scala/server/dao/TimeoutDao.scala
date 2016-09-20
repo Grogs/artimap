@@ -18,6 +18,8 @@ class TimeoutDao(cache: mutable.Map[String, List[String]]) extends TimeoutDaoInt
   override def getAddress(locationId: String): Option[String] = getPage(locationId).flatMap(getAddress(locationId, _)).headOption
   override def getEntries(articleId: String) = getPage(articleId) flatMap (getEntries(articleId, _))
 
+  def nuke(article: String) = cache.remove(article)
+
   def getGeocode(locationId: String, page: String): Option[LatLong] = for {
     map <- Jsoup.parse(page).select("div[data-module=map][data-params]").asScala.headOption
     params = map.attr("data-params")
@@ -33,20 +35,23 @@ class TimeoutDao(cache: mutable.Map[String, List[String]]) extends TimeoutDaoInt
   }
 
   override def getPage(rawArticleId: String): List[String] = {
-    val articleId = rawArticleId.replaceFirst("http://www.timeout.com","")
+    val articleId = rawArticleId.replaceFirst("https://www.timeout.com","")
     logger.debug("cached articles: " + cache.size  )
     if (cache.contains(articleId)) {
       logger.debug(s"cache hit: $articleId")
       cache(articleId)
     } else {
-      val url = s"http://www.timeout.com$articleId"
+      val url = s"https://www.timeout.com$articleId"
       logger.debug(s"Retrieving: $url")
       val page = io.Source.fromURL(url).mkString
       logger.debug(s"Retrieved for $url:\n${page.take(800)}")
       val pages =
         if (page.contains("class=\"load_more_widget__button\"")) {
           logger.debug(s"page has pagination, doing crazy shit: $articleId")
-          val nextPageId = Jsoup.parse(page).select("a.load_more_widget__button").last().attr("href")
+          val nextPageId =  (for {
+            (selector, attribute) <- List("li.load_more_widget__button" -> "data-ajax-url", "a.load_more_widget__button" -> "href")
+            page <- Try(Jsoup.parse(page).select(selector).last().attr(attribute)).toOption
+          } yield page).head
           def getNumber(url:String) = Try(url.replaceFirst(".*&page_number=([0-9]+)$", "$1").toInt).toOption.getOrElse(0)
           if (getNumber(nextPageId) > getNumber(articleId))
             page :: getPage(nextPageId)
@@ -75,7 +80,8 @@ class TimeoutDao(cache: mutable.Map[String, List[String]]) extends TimeoutDaoInt
       ".tab__panel > div > div > article",
       ".tiles:first-child > article",
       ".main_content .medium_list article.feature-item",
-      ".main_content  div.slide:not([class~=\"slide-0\"]) > div.feature-item"
+      ".main_content  div.slide:not([class~=\"slide-0\"]) > div.feature-item",
+      "#content > article > div.main_content > div.zone > div > article"
     )
     def select(selector: String): List[Element] = {
       Jsoup.parse(page).select(selector).asScala.toList

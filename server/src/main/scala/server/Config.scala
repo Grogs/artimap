@@ -62,6 +62,12 @@ class Config(private val config: TypesafeConfig = ConfigFactory.load()) extends 
     if entries.isEmpty
     _ = logger.info(s"Removing invalid/empty map: $key")
   } mapCache.remove(key)
+  for{
+    (key, entries) <- articleCache
+    if entries.isEmpty || entries.forall(_.isEmpty)
+    _ = logger.info(s"Removing invalid/empty pages: $key")
+  } articleCache.remove(key)
+  flushCaches()
 
 //  oldMapCache:    ${oldMapCache.size}
   logger.debug(

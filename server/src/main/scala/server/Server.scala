@@ -34,8 +34,16 @@ class Server(config: Config) extends SimpleRoutingApp {
   startServer(interface = "0.0.0.0", port = port) {
     (get & path("flush")) {
       complete {
-        config .flushCaches()
+        config.flushCaches()
         "Done!"
+      }
+    } ~
+    (get & path("nuke" / Segments)) { s =>
+      complete {
+        val article = "/" + s.mkString("/")
+        config.mapService.nuke(article)
+        config.timeoutDao.nuke(article)
+        s"Removed $article"
       }
     } ~
     (get & (path("index") | path(""))) {

@@ -22,6 +22,8 @@ class MapService(geocodingDao: GeocodingDaoInter, timeoutDao: TimeoutDaoInter, c
     })
   }
 
+  def nuke(article: String) = cache.remove(article)
+
   def remove404s(positions: List[Future[(Entry, LatLong)]]) = positions.map(_.map(Option(_)).recover{
     case error404: FileNotFoundException =>
       logger.error("received 404 when retrieving position, skipping", error404)
