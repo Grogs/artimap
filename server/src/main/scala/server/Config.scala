@@ -1,18 +1,18 @@
 package server
 
-import java.io.File
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
-import com.typesafe.config.{Config => TypesafeConfig, ConfigObject, ConfigFactory}
+import com.typesafe.config.{ConfigFactory, Config => TypesafeConfig}
 import com.typesafe.scalalogging.LazyLogging
-import org.mapdb.DBMaker
 import server.dao.{GeocodingDao, TimeoutDao}
 import server.service.MapService
+import server.util.Persistable
 import shared.model.{Entry, LatLong}
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
-import scala.concurrent.duration.{FiniteDuration, _}
+import scala.concurrent.duration._
+
+import boopickle.Default._
 
 object Environment extends Enumeration {
   type Environment = Value
@@ -20,16 +20,8 @@ object Environment extends Enumeration {
 }
 
 class Config(private val config: TypesafeConfig = ConfigFactory.load()) extends LazyLogging {
-  private val dbFile = new File("test.db")
-  logger.debug(s"${dbFile.getCanonicalPath} exists: ${dbFile.exists()}")
-  private val db = DBMaker
-    .fileDB(dbFile)
-//    .asyncWriteEnable()
-//    .executorEnable()
-    .closeOnJvmShutdown()
-    .make()
 
-  val environment = Environment withName sys.env.get("ENVIRONMENT").getOrElse(throw new IllegalArgumentException("Please specify the ENVIRONMENT env variable"))
+  val environment = Environment withName sys.env.getOrElse("ENVIRONMENT", throw new IllegalArgumentException("Please specify the ENVIRONMENT env variable"))
 
   val scheduler = new ScheduledThreadPoolExecutor(1)
   def schedule(task: => Unit, frequency: FiniteDuration, initialDelay: Option[FiniteDuration] = None) = scheduler.scheduleAtFixedRate(
@@ -39,51 +31,49 @@ class Config(private val config: TypesafeConfig = ConfigFactory.load()) extends 
     TimeUnit.MILLISECONDS
   )
 
+
+  private val articleCache = Persistable[mutable.HashMap[String, List[String]]]("articles-cache", mutable.HashMap())
+  private val geocodingCache = Persistable[mutable.LinkedHashMap[String, LatLong]]("geocoding-cache", mutable.LinkedHashMap())
+  private val mapCache = Persistable[mutable.LinkedHashMap[String, List[(Entry, LatLong)]]]("mapservice-cache", mutable.LinkedHashMap())
+
   def flushCaches() = {
     logger.debug("Flushing")
-    db.commit()
+    articleCache.flush()
+    geocodingCache.flush()
+    mapCache.flush()
   }
 
   schedule(flushCaches(), 5.minutes)
 
-  private val oldArticleCache: mutable.Map[String,String] = db.hashMap[String, String]("articles").asScala
-  private val articleCache: mutable.Map[String,List[String]] = db.hashMap[String, List[String]]("articles-cache").asScala
-  if (articleCache.isEmpty && !oldArticleCache.isEmpty) oldArticleCache.foreach{ case (key, value) =>
-    logger.debug(s"migrating article cache: $key")
-    articleCache.put(key, List(value))
-  }
-  private val geocodingCache: mutable.Map[String, LatLong] = db.treeMap[String, LatLong]("geocoding-cache").asScala
-//  private val oldMapCache: mutable.Map[String, List[(Entry, LatLong)]] = db.treeMap[String, List[(Entry, LatLong)]]("map-service").asScala
-  private val mapCache: mutable.Map[String, List[(Entry, LatLong)]] = db.treeMap[String, List[(Entry, LatLong)]]("mapservice-cache").asScala
 
   //Remove invalid (empty) maps
   for{
-    (key, entries) <- mapCache
+    (key, entries) <- mapCache.underlying
     if entries.isEmpty
     _ = logger.info(s"Removing invalid/empty map: $key")
-  } mapCache.remove(key)
+  } mapCache.underlying.remove(key)
   for{
-    (key, entries) <- articleCache
+    (key, entries) <- articleCache.underlying
     if entries.isEmpty || entries.forall(_.isEmpty)
     _ = logger.info(s"Removing invalid/empty pages: $key")
-  } articleCache.remove(key)
+  } articleCache.underlying.remove(key)
   flushCaches()
 
 //  oldMapCache:    ${oldMapCache.size}
   logger.debug(
     s"""Cache stats:
-       |  articleCache:   ${articleCache.size}
-       |  geocodingCache: ${geocodingCache.size}
-       |  mapCache:       ${mapCache.size}
+       |  articleCache:   ${articleCache.underlying.size}
+       |  geocodingCache: ${geocodingCache.underlying.size}
+       |  mapCache:       ${mapCache.underlying.size}
      """.stripMargin)
 
   val googleKey = config.getString("api.key.google.maps")
 
-  val geocodingDao = new GeocodingDao(googleKey, geocodingCache)
+  val geocodingDao = new GeocodingDao(googleKey, geocodingCache.underlying)
 
-  val timeoutDao = new TimeoutDao(articleCache)
+  val timeoutDao = new TimeoutDao(articleCache.underlying)
 
-  val mapService = new MapService(geocodingDao, timeoutDao, mapCache)
+  val mapService = new MapService(geocodingDao, timeoutDao, mapCache.underlying)
 
 }
 

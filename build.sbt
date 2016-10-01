@@ -25,7 +25,6 @@ lazy val server: sbt.Project = (project in file("server")).settings(
       "com.google.maps" % "google-maps-services" % "0.1.9",
       "com.typesafe.akka" %% "akka-http-experimental" % "2.4.11",
       "com.typesafe.akka" %% "akka-actor" % akkaV,
-      "org.mapdb" % "mapdb" % "2.0-beta12",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
       "ch.qos.logback" % "logback-classic" % "1.1.3",
       "org.scalatest" %% "scalatest" % "2.2.4" % "test",
@@ -71,6 +70,7 @@ lazy val client: sbt.Project = (project in file("client")).settings(
 lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared")).settings(
   scalaVersion := scalaV,
   libraryDependencies ++= Seq(
+    "me.chrons" %%% "boopickle" % "1.2.4",
     "com.lihaoyi" %%% "upickle" % "0.3.6",
     "com.lihaoyi" %%% "autowire" % "0.2.4",
     "com.lihaoyi" %%% "scalatags" % "0.5.2"

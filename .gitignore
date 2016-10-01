@@ -8,3 +8,4 @@ activator-*.jar
 shared/.js/
 shared/.jvm/
 target/
+caches/
