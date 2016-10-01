@@ -6,7 +6,9 @@ name := """artimap"""
 
 version := "1.0"
 
-val scalaV = "2.11.7"
+val scalaV = "2.11.8"
+
+enablePlugins(JavaAppPackaging)
 
 publishTo := Some(Resolver.file("file", new File("/Users/grogs/Dropbox/repository")))
 
@@ -16,7 +18,6 @@ lazy val server: sbt.Project = (project in file("server")).settings(
   scalaVersion := scalaV,
   libraryDependencies ++= {
     val akkaV = "2.3.9"
-    val sprayV = "1.3.3"
     Seq(
       "org.jsoup" % "jsoup" % "1.7.3",
       "org.apache.commons" % "commons-email" % "1.3.3",
