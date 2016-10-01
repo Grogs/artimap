@@ -31,12 +31,14 @@ object Main extends js.JSApp {
     navigate(homepage)
 
     val mapContainer = Option(document.getElementById("map-container")).getOrElse(throw new IllegalStateException("Map container div not found"))
+    val selectedArticle = document.getElementById("selected-article").asInstanceOf[HTMLSelectElement]
     def relPath(url: String) = if (url contains '#') url.dropWhile(_ != '#').drop(1) else ""
 
     def route(path: String) = path match {
       case mapRoute(article) =>
         console.log(s"mapRoute($article)")
         homepage.loadMap(article)
+        selectedArticle.selectedIndex = selectedArticle.options.find(_.value == article).get.index
       case "" =>
         homepage.clearMap
       case unmatched =>
