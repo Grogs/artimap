@@ -4,21 +4,27 @@ import akka.actor.ActorSystem
 import server.views.Index
 import shared.dao.{GeocodingDaoInter, TimeoutDaoInter}
 import shared.service.MapServiceInter
-import spray.http.{HttpEntity, MediaTypes}
-import spray.routing.SimpleRoutingApp
 import upickle.{default => upickle}
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.server.Directives._
+import akka.stream.ActorMaterializer
+
+
 import scala.util.Properties
 
-class Server(config: Config) extends SimpleRoutingApp {
+class Server(config: Config) {
   object Router extends autowire.Server[String, upickle.Reader, upickle.Writer] {
     def read[Result: upickle.Reader](p: String) = upickle.read[Result](p)
 
     def write[Result: upickle.Writer](r: Result) = upickle.write(r)
   }
 
-  implicit val system = ActorSystem("spray-server")
+  implicit val system = ActorSystem("artimap-server")
+  implicit val materializer = ActorMaterializer()
+  implicit val executionContext = system.dispatcher
 
   val port = Properties.envOrElse("PORT", "8080").toInt
 
@@ -31,7 +37,7 @@ class Server(config: Config) extends SimpleRoutingApp {
   val geocodingRouter = Router.route[GeocodingDaoInter](config.geocodingDao)
   val mapServiceRouter = Router.route[MapServiceInter](config.mapService)
 
-  startServer(interface = "0.0.0.0", port = port) {
+  val routes = {
     (get & path("flush")) {
       complete {
         config.flushCaches()
@@ -47,19 +53,18 @@ class Server(config: Config) extends SimpleRoutingApp {
       }
     } ~
     (get & (path("index") | path(""))) {
-      complete {
-        val doc = Index(config.googleKey, config.environment).render
+      complete (
         HttpEntity(
-          MediaTypes.`text/html`,
-          doc
+          ContentTypes.`text/html(UTF-8)`,
+          Index(config.googleKey, config.environment).render
         )
-      }
+      )
     } ~
     pathPrefix("assets") {
       getFromResourceDirectory("js")
     } ~
     (post & path("api" / Segments)) { s =>
-        extract(_.request.entity.asString) { e =>
+        entity(as[String]) { e =>
           complete {
             (timeoutRouter orElse geocodingRouter orElse mapServiceRouter)(req(s,e))
           }
@@ -69,4 +74,6 @@ class Server(config: Config) extends SimpleRoutingApp {
   }
 }
 
-object Server extends Server(config = Config) with App
+object Server extends Server(config = Config) with App {
+  Http().bindAndHandle(routes, "localhost", port)
+}

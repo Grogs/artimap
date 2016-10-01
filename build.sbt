@@ -1,16 +1,18 @@
 import spray.revolver.RevolverPlugin.Revolver.reStart
 
-name := """timeout"""
+organization := "me.gregd.artimap"
+
+name := """artimap"""
 
 version := "1.0"
 
 val scalaV = "2.11.7"
 
+publishTo := Some(Resolver.file("file", new File("/Users/grogs/Dropbox/repository")))
 
+lazy val scalajsOutputDir = server.base / "src" / "main" / "resources" / "js"
 
-lazy val scalajsOutputDir = server.base/"src"/"main"/"resources"/"js"
-
-lazy val server:sbt.Project = (project in file("server")).settings(
+lazy val server: sbt.Project = (project in file("server")).settings(
   scalaVersion := scalaV,
   libraryDependencies ++= {
     val akkaV = "2.3.9"
@@ -21,33 +23,33 @@ lazy val server:sbt.Project = (project in file("server")).settings(
       "commons-io" % "commons-io" % "2.4",
       "com.typesafe" % "config" % "1.2.1",
       "com.google.maps" % "google-maps-services" % "0.1.9",
-      "io.spray"            %%  "spray-can"     % sprayV,
-      "io.spray"            %%  "spray-routing" % sprayV,
-      "com.typesafe.akka"   %%  "akka-actor"    % akkaV,
+      "com.typesafe.akka" %% "akka-http-experimental" % "2.4.11",
+      "com.typesafe.akka" %% "akka-actor" % akkaV,
       "org.mapdb" % "mapdb" % "2.0-beta12",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
       "ch.qos.logback" % "logback-classic" % "1.1.3",
       "org.scalatest" %% "scalatest" % "2.2.4" % "test",
       "org.scala-lang" % "scala-reflect" % scalaV,
-    //      "com.github.julien-truffaut"  %%  "monocle-core"    % "1.2.0-RC1",
-//      "com.github.julien-truffaut"  %%  "monocle-macro"   % "1.2.0-RC1",
+      //      "com.github.julien-truffaut"  %%  "monocle-core"    % "1.2.0-RC1",
+      //      "com.github.julien-truffaut"  %%  "monocle-macro"   % "1.2.0-RC1",
       //      "com.github.finagle" %% "finch-core" % "0.9.2",
       "com.lihaoyi" %% "pprint" % "0.3.6",
       "com.lihaoyi" %%% "scalarx" % "0.2.8"
 
-    )//,
-//    libraryDependencies += "com.lihaoyi" % "ammonite-repl" % "0.5.1" % "test" cross CrossVersion.full
-//    initialCommands in console := """ammonite.repl.Main.run("")"""
+    ) //,
+    //    libraryDependencies += "com.lihaoyi" % "ammonite-repl" % "0.5.1" % "test" cross CrossVersion.full
+    //    initialCommands in console := """ammonite.repl.Main.run("")"""
   }).settings(
-    Revolver.settings,
-    javaOptions in reStart += "-DENVIRONMENT=DEV",
-    javaOptions in run += "-DENVIRONMENT=PROD",
-    test in assembly := {}, //Disable tests during 'sbt assembly'
-    javaOptions in assembly += "-DENVIRONMENT=PROD",
-    mainClass in assembly := Some("server.Server")
-  ).dependsOn(sharedJvm)
+  Revolver.settings,
+  javaOptions in reStart += "-DENVIRONMENT=DEV",
+  javaOptions in run += "-DENVIRONMENT=PROD",
+  test in assembly := {}, //Disable tests during 'sbt assembly'
+  javaOptions in assembly += "-DENVIRONMENT=PROD",
+  mainClass in assembly := Some("server.Server"),
+  publishTo := Some(Resolver.file("file", new File("/Users/grogs/Dropbox/repository")))
+).dependsOn(sharedJvm)
 
-lazy val client:sbt.Project = (project in file("client")).settings(
+lazy val client: sbt.Project = (project in file("client")).settings(
   scalaVersion := scalaV,
   persistLauncher := true,
   persistLauncher in Test := false,
@@ -59,8 +61,10 @@ lazy val client:sbt.Project = (project in file("client")).settings(
 ).settings(
   Seq(fastOptJS, fullOptJS) map {
     packageJSKey =>
-      crossTarget in (Compile, packageJSKey) := scalajsOutputDir
-  }:_*
+      crossTarget in(Compile, packageJSKey) := scalajsOutputDir
+  }: _*
+).settings(
+  publishTo := Some(Resolver.file("file", new File("/Users/grogs/Dropbox/repository")))
 ).enablePlugins(ScalaJSPlugin).dependsOn(sharedJs)
 
 
@@ -70,7 +74,8 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared")).set
     "com.lihaoyi" %%% "upickle" % "0.3.6",
     "com.lihaoyi" %%% "autowire" % "0.2.4",
     "com.lihaoyi" %%% "scalatags" % "0.5.2"
-  )
+  ),
+  publishTo := Some(Resolver.file("file", new File("/Users/grogs/Dropbox/repository")))
 )
 
 lazy val sharedJvm = shared.jvm
