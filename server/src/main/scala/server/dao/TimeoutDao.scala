@@ -35,13 +35,14 @@ class TimeoutDao(cache: mutable.Map[String, List[String]]) extends TimeoutDaoInt
   }
 
   override def getPage(rawArticleId: String): List[String] = {
-    val articleId = rawArticleId.replaceFirst("http://www.timeout.com","")
+    val articleId = rawArticleId.replaceFirst("https?://www.timeout.com","")
     logger.debug("cached articles: " + cache.size  )
     if (cache.contains(articleId)) {
       logger.debug(s"cache hit: $articleId")
       cache(articleId)
     } else {
-      val url = s"http://www.timeout.com$articleId"
+      val protocol = if (articleId contains "bristol") "https" else "http"
+      val url = s"$protocol://www.timeout.com$articleId"
       logger.debug(s"Retrieving: $url")
       val page = io.Source.fromURL(url).mkString
       logger.debug(s"Retrieved for $url:\n${page.take(800)}")

@@ -3,7 +3,7 @@ package server.util
 import java.io._
 import java.nio.ByteBuffer
 import java.nio.file.Files
-import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+import java.nio.file.StandardCopyOption._
 
 import boopickle.Default.{Pickle, Unpickle}
 import boopickle.Pickler
@@ -28,7 +28,7 @@ class Persistable[T:Pickler](name: String, default: => T) extends LazyLogging {
   def flush() = {
     val bytes = Pickle.intoBytes(underlying)
     Files.write(tmpFile.toPath, bytes.array())
-    Files.move(tmpFile.toPath, backingFile.toPath, REPLACE_EXISTING)
+    Files.move(tmpFile.toPath, backingFile.toPath, REPLACE_EXISTING, ATOMIC_MOVE)
   }
 
 }
