@@ -1,18 +1,15 @@
 import spray.revolver.RevolverPlugin.Revolver.reStart
 
-organization in Global := "me.gregd.artimap"
-version in Global := "1.0"
-
-val scalaV = "2.11.8"
+organization in ThisBuild := "me.gregd.artimap"
+version in ThisBuild := "1.0"
+scalaVersion in ThisBuild := "2.11.8"
 
 enablePlugins(JavaAppPackaging)
 
 lazy val scalajsOutputDir = server.base / "src" / "main" / "resources" / "js"
 
 lazy val server: sbt.Project = project.settings(
-  scalaVersion := scalaV,
   name := "artimap-server",
-  version := "1.0",
   libraryDependencies ++= {
     Seq(
       "org.jsoup" % "jsoup" % "1.7.3",
@@ -25,7 +22,7 @@ lazy val server: sbt.Project = project.settings(
       "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
       "ch.qos.logback" % "logback-classic" % "1.1.3",
       "org.scalatest" %% "scalatest" % "2.2.4" % "test",
-      "org.scala-lang" % "scala-reflect" % scalaV,
+      "org.scala-lang" % "scala-reflect" % "2.11.8",
       "com.lihaoyi" %% "pprint" % "0.3.6",
       "com.lihaoyi" %%% "scalarx" % "0.2.8"
 
@@ -39,11 +36,9 @@ lazy val server: sbt.Project = project.settings(
 ).dependsOn(sharedJvm)
 
 lazy val client: sbt.Project = project.settings(
-  scalaVersion := scalaV,
   persistLauncher := true,
   persistLauncher in Test := false,
   name := "artimap-client",
-  version := "1.0",
   libraryDependencies ++= Seq(
     "org.scala-js" %%% "scalajs-dom" % "0.8.0",
     "be.doeraene" %%% "scalajs-jquery" % "0.8.1",
@@ -58,9 +53,7 @@ lazy val client: sbt.Project = project.settings(
 
 
 lazy val shared = crossProject.crossType(CrossType.Pure).settings(
-  scalaVersion := scalaV,
   name := "artimap-shared",
-  version := "1.0",
   libraryDependencies ++= Seq(
     "me.chrons" %%% "boopickle" % "1.2.4",
     "com.lihaoyi" %%% "upickle" % "0.3.6",
