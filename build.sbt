@@ -1,21 +1,18 @@
 import spray.revolver.RevolverPlugin.Revolver.reStart
 
-organization := "me.gregd.artimap"
-
-name := "artimap"
-
-version := "1.0"
+organization in Global := "me.gregd.artimap"
+version in Global := "1.0"
 
 val scalaV = "2.11.8"
 
 enablePlugins(JavaAppPackaging)
 
-publishTo := Some(Resolver.file("file", new File("/Users/grogs/Dropbox/repository")))
-
 lazy val scalajsOutputDir = server.base / "src" / "main" / "resources" / "js"
 
 lazy val server: sbt.Project = project.settings(
   scalaVersion := scalaV,
+  name := "artimap-server",
+  version := "1.0",
   libraryDependencies ++= {
     Seq(
       "org.jsoup" % "jsoup" % "1.7.3",
@@ -23,7 +20,7 @@ lazy val server: sbt.Project = project.settings(
       "commons-io" % "commons-io" % "2.4",
       "com.typesafe" % "config" % "1.2.1",
       "com.google.maps" % "google-maps-services" % "0.1.9",
-      "com.typesafe.akka" %% "akka-http-experimental" % "2.4.11",
+      "com.typesafe.akka" %% "akka-http" % "10.0.0",
       "com.typesafe.akka" %% "akka-actor" % "2.4.11",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
       "ch.qos.logback" % "logback-classic" % "1.1.3",
@@ -45,6 +42,8 @@ lazy val client: sbt.Project = project.settings(
   scalaVersion := scalaV,
   persistLauncher := true,
   persistLauncher in Test := false,
+  name := "artimap-client",
+  version := "1.0",
   libraryDependencies ++= Seq(
     "org.scala-js" %%% "scalajs-dom" % "0.8.0",
     "be.doeraene" %%% "scalajs-jquery" % "0.8.1",
@@ -60,6 +59,8 @@ lazy val client: sbt.Project = project.settings(
 
 lazy val shared = crossProject.crossType(CrossType.Pure).settings(
   scalaVersion := scalaV,
+  name := "artimap-shared",
+  version := "1.0",
   libraryDependencies ++= Seq(
     "me.chrons" %%% "boopickle" % "1.2.4",
     "com.lihaoyi" %%% "upickle" % "0.3.6",
